@@ -178,10 +178,39 @@ public abstract class AbstractController<T> implements Serializable {
     public void save(ActionEvent event) {
         String msg = ResourceBundle.getBundle("/MyBundle").getString(itemClass.getSimpleName() + "Updated");
         persist(PersistAction.UPDATE, msg);
+        
+        // added by Kay 2017-04-04
+        if (!isValidationFailed()) {
+            // Identify the modified object inside the list. Do NOT re-query entire list
+            for (T item : this.items) {
+                if (item.equals(this.selected)) {
+                    if (this.items instanceof List) {
+                        List<T> itemList = (List<T>)this.items;
+                        int i = itemList.indexOf(item);
+                        itemList.remove(i);
+                        itemList.add(i, this.selected);
+                    } else {
+                        this.items.remove(item);
+                        this.items.add(this.selected);
+                    }
+                    break;
+                }
+            }
+            
+            // DEBUG: Verify that the assignment actually worked
+//            for (T item : this.items) {
+//                if (item.equals(this.selected)) {
+//                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Entity: " + item + ", selected: " + this.selected);
+//                    break;
+//                }
+//            }
+        }
+        
+        
    //added from me
  
 //call the method for resresh the lItems field. So the modified or new saved Entity is //available into datatable into List.xhtml page.
- this.refreshItemsFromDB();
+ //this.refreshItemsFromDB();
 
     }
 
