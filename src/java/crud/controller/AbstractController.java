@@ -178,40 +178,27 @@ public abstract class AbstractController<T> implements Serializable {
     public void save(ActionEvent event) {
         String msg = ResourceBundle.getBundle("/MyBundle").getString(itemClass.getSimpleName() + "Updated");
         persist(PersistAction.UPDATE, msg);
-        
-        // added by Kay 2017-04-04
-        if (!isValidationFailed()) {
-            // Identify the modified object inside the list. Do NOT re-query entire list
-            for (T item : this.items) {
-                if (item.equals(this.selected)) {
-                    if (this.items instanceof List) {
-                        List<T> itemList = (List<T>)this.items;
-                        int i = itemList.indexOf(item);
-                        itemList.remove(i);
-                        itemList.add(i, this.selected);
-                    } else {
-                        this.items.remove(item);
-                        this.items.add(this.selected);
-                    }
-                    break;
-                }
-            }
-            
-            // DEBUG: Verify that the assignment actually worked
-//            for (T item : this.items) {
-//                if (item.equals(this.selected)) {
-//                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Entity: " + item + ", selected: " + this.selected);
-//                    break;
-//                }
-//            }
-        }
-        
-        
-   //added from me
- 
-//call the method for resresh the lItems field. So the modified or new saved Entity is //available into datatable into List.xhtml page.
- //this.refreshItemsFromDB();
 
+        // added by Kay 2017-04-04
+        // Identify the modified object inside the list. Do NOT re-query entire list
+        if (!isValidationFailed()) {
+            // Use List#set to replace the existing instance of this entity
+            // If items is not a List, convert the Collection to a List so we
+            // can use the "set" method to replace the merged entity object
+            List<T> itemList;
+            if (this.items instanceof List) {
+                itemList = (List<T>) this.items;
+            } else {
+                itemList = new ArrayList<>(this.items);
+            }
+            itemList.set(itemList.indexOf(this.selected), this.selected);
+
+            // If the original collection was not a List, then assign the items to the new ArrayList
+            if (!(this.items instanceof List)) {
+                this.setItems(itemList);
+            }
+
+        }
     }
 
     /**
@@ -342,11 +329,5 @@ public abstract class AbstractController<T> implements Serializable {
             setLazyItems((Collection<T>) paramItems);
         }
     }
-    
-    //simple add this method into AbstractController
-public void refreshItemsFromDB(){
-this.setItems(this.ejbFacade.findAll());
-}
-
 
 }
